@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import {
-  SafeAreaView,
-  StyleSheet,
-  Text,
-  View,
-  Animated,
-  TouchableWithoutFeedback,
+    SafeAreaView,
+    Easing,
+    StyleSheet,
+    Text,
+    View,
+    Animated,
+    TouchableWithoutFeedback,
+    TouchableOpacity
 } from 'react-native';
 
 const BG_BLACK = 'black';
@@ -14,8 +16,8 @@ const BG_LIGHT = 'grey';
 const TILE_ANIMATION_TIME = 300;
 
 const TILE_S_SIZE = 100;
-const TILE_M_SIZE = 125;
-const TILE_L_SIZE = 300;
+const TILE_M_SIZE = 124; // 12 + 12
+const TILE_L_SIZE = 250;
 
 const Tile = (props) => {
     const [bg, setBG] = useState(BG_BLACK); // цвет плитки
@@ -49,6 +51,7 @@ const Tile = (props) => {
     const onLongPressAnimate = () => {
         setShouldClose(false);
         setBG(BG_BLACK); // возвращать цвет плитки в темный
+        props.onExpand(props.tile.id);
 
         Animated.timing(whAnim, {
             toValue: TILE_L_SIZE,
@@ -68,24 +71,47 @@ const Tile = (props) => {
             delayPressIn={10}
             delayLongPress={300}
             disabled={!shouldClose}
-            style={[styles.tileContainer, !shouldClose ? { flex: 1 } : { flex: 0 }]}
         >
-            <Animated.View style={[styles.tile, newWH, newBG]}>
-                {props.children}
-            </Animated.View>
+            <View style={styles.tileContainer}>
+                <Animated.View style={[styles.tile, newWH, newBG]}>
+                    {props.children}
+                    <TouchableOpacity onPress={() => { setShouldClose(true); onPressOutAnimate(); }}><Text style={{color:'white'}}>close (x)</Text></TouchableOpacity>
+                </Animated.View>
+            </View>
         </TouchableWithoutFeedback>
     )
 }
 
 const AnimatedApp = () => {
+    const [expandedTileID, setExpandedTileID] = useState(undefined);
+
+    const tilesContent = [{
+            id: 'j35g9h34',
+            title: 'X'
+        }, {
+            id: 'g04j5g0j',
+            title: 'Y'
+        }, {
+            id: 'kdt29kf0',
+            title: 'Z'
+        },
+    ];
+
     return (
-        <View style={styles.body}>        
-            <Tile style={styles.tile}>
-                <Text style={{color: 'white', fontSize: 50, margin: 10}}>O</Text>
-            </Tile>
-        </View>
+        <SafeAreaView style={styles.body}>
+            {tilesContent.map(t =>
+                <View key={t.id} style={expandedTileID && t.id !== expandedTileID ? {opacity:0.7} : {opacity:0.7}}>
+                    <Tile tile={t} onExpand={setExpandedTileID}>
+                        <Text style={styles.text}>{t.title}</Text>
+                    </Tile>
+                </View>
+            )}
+        </SafeAreaView>
     )
 }
+
+// expandedTileID && t.id !== expandedTileID ? {opacity:0} : {opacity:0.7}
+// expandedTileID && t.id !== expandedTileID ? {display:'none'} : {display:'flex'}
 
 const styles = StyleSheet.create({
     body: {
@@ -94,21 +120,25 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center',
     },
+    text: {
+        color: 'white', 
+        fontSize: 48,
+    },
 
     tileContainer: {
-        width: 100,
-        height: 100,
+        width: 116,
+        height: 116,
         justifyContent: 'center',
         alignItems: 'center',
     },
     tile: {
         width: 100,
         height: 100,
+        justifyContent: 'center',
+        alignItems: 'center',
         backgroundColor: 'black',
         opacity: 0.7,
         borderRadius: 20,
-        justifyContent: 'center',
-        alignItems: 'center',
     }
 });
 
