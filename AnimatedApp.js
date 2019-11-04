@@ -174,9 +174,6 @@ const AnimatedApp = () => {
     )
 }
 
-// expandedTileID && t.id !== expandedTileID ? {opacity:0} : {opacity:0.7}
-// expandedTileID && t.id !== expandedTileID ? {display:'none'} : {display:'flex'}
-
 const styles = StyleSheet.create({
     body: {
         flex: 1,
@@ -192,8 +189,6 @@ const styles = StyleSheet.create({
     tileContainer: {
         width: TILE_S_SIZE + 16,
         height: TILE_S_SIZE + 16,
-        //backgroundColor: 'cyan',
-        //flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
     },
