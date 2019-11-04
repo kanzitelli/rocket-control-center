@@ -33,22 +33,25 @@ const tilesContent = [{
         whAnim: new Animated.Value(TILE_S_SIZE),
         shouldClose: true,
         bg: BG_BLACK,
+        point: undefined,
     }, {
         id: 'g04j5g0j',
         title: 'Y',
         whAnim: new Animated.Value(TILE_S_SIZE),
         shouldClose: true,
         bg: BG_BLACK,
+        point: undefined,
     }, {
         id: 'kdt29kf0',
         title: 'Z',
         whAnim: new Animated.Value(TILE_S_SIZE),
         shouldClose: true,
         bg: BG_BLACK,
+        point: undefined,
     },
 ];
 
-const Tile = ({ tile, onAnimate, onExpand, onToggle, onClose, children }) => {
+const Tile = ({ tile, onAnimate, onExpand, onToggle, onClose, onLayout, children }) => {
     const onPressAnimate = () => {
         onToggle(tile.id);
     };
@@ -74,6 +77,7 @@ const Tile = ({ tile, onAnimate, onExpand, onToggle, onClose, children }) => {
 
     return (
         <TouchableWithoutFeedback
+            onLayout={e => onLayout(tile.id, e.nativeEvent.layout)}
             onPress={onPressAnimate}
             onPressIn={onPressInAnimate}
             onPressOut={onPressOutAnimate}
@@ -85,6 +89,7 @@ const Tile = ({ tile, onAnimate, onExpand, onToggle, onClose, children }) => {
             <View style={styles.tileContainer}>
                 <Animated.View style={[styles.tile, newWH, newBG]}>
                     {children}
+                    {tile.point && <Text style={{color:'white'}}>{`${tile.point.x} ${tile.point.y}`}</Text>}
                     <TouchableOpacity onPress={() => { onClose(tile.id); }}>
                         <Text style={{color:'white'}}>(close)</Text>
                     </TouchableOpacity>
@@ -94,9 +99,9 @@ const Tile = ({ tile, onAnimate, onExpand, onToggle, onClose, children }) => {
     )
 }
 
-const TilesView = ({ tiles, onAnimateTile, onExpandTile, onToggleTile, onCloseTile }) => {
+const TilesView = ({ tiles, onAnimateTile, onExpandTile, onToggleTile, onCloseTile, onLayoutTile }) => {
     return (
-        <View>
+        <React.Fragment>
             {tiles.map(t =>
                 <Tile 
                     key={t.id} 
@@ -105,16 +110,19 @@ const TilesView = ({ tiles, onAnimateTile, onExpandTile, onToggleTile, onCloseTi
                     onExpand={onExpandTile}
                     onToggle={onToggleTile}
                     onClose={onCloseTile}
+                    onLayout={onLayoutTile}
                 >
                     <Text style={styles.text}>{t.title}</Text>
                 </Tile>
             )}
-        </View>
+        </React.Fragment>
     );
 }
 
 const AnimatedApp = () => {
     const [tiles, setTiles] = useState(tilesContent);
+
+    // useEffect(() => { console.log(state1, state2)}, [state1])
 
     const updatedTiles = (tIndex, withData) => [
         ...tiles.slice(0, tIndex),
@@ -161,6 +169,19 @@ const AnimatedApp = () => {
         onAnimateTile(tId, ANIMATION.to_s);
     }
 
+    const onLayoutTile = (tId, layout) => {
+        const tIndex = tiles.findIndex(t => t.id === tId);
+
+        if (!tiles[tIndex].point) {
+            setTiles(updatedTiles(tIndex, {
+                point: {
+                    x: layout.x,
+                    y: layout.y,
+                },
+            }));
+        }
+    }
+
     return (
         <SafeAreaView style={styles.body}>
             <TilesView
@@ -169,6 +190,7 @@ const AnimatedApp = () => {
                 onExpandTile={onExpandTile}
                 onToggleTile={onToggleTile}
                 onCloseTile={onCloseTile}
+                onLayoutTile={onLayoutTile}
             />
         </SafeAreaView>
     )
