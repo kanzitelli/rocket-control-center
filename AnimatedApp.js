@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import {
     SafeAreaView,
     Easing,
+    Dimensions,
     StyleSheet,
     Text,
     View,
@@ -13,54 +14,64 @@ import {
 const BG_BLACK = 'black';
 const BG_LIGHT = 'grey';
 
+const SCREEN_WIDTH = Dimensions.get('screen').width;
+
 const TILE_ANIMATION_TIME = 300;
 
-const TILE_S_SIZE = 100;
-const TILE_M_SIZE = 124; // 12 + 12
-const TILE_L_SIZE = 250;
+const TILE_S_SIZE = 150;
+const TILE_M_SIZE = TILE_S_SIZE + 24;
+const TILE_L_SIZE = SCREEN_WIDTH - 16 * 3;
 
-const Tile = (props) => {
-    const [bg, setBG] = useState(BG_BLACK); // цвет плитки
-    const [shouldClose, setShouldClose] = useState(true); // нужно ли сворачивать плитку. если плитка развернута до L_SIZE, то false.
-    const [whAnim] = useState(new Animated.Value(TILE_S_SIZE)); // width&height state
+const ANIMATION = {
+    to_s: TILE_S_SIZE,
+    to_m: TILE_M_SIZE,
+    to_l: TILE_L_SIZE,
+}
 
-    useEffect(() => {
-        
-    });
+const tilesContent = [{
+        id: 'j35g9h34',
+        title: 'X',
+        whAnim: new Animated.Value(TILE_S_SIZE),
+        shouldClose: true,
+        bg: BG_BLACK,
+    }, {
+        id: 'g04j5g0j',
+        title: 'Y',
+        whAnim: new Animated.Value(TILE_S_SIZE),
+        shouldClose: true,
+        bg: BG_BLACK,
+    }, {
+        id: 'kdt29kf0',
+        title: 'Z',
+        whAnim: new Animated.Value(TILE_S_SIZE),
+        shouldClose: true,
+        bg: BG_BLACK,
+    },
+];
 
+const Tile = ({ tile, onAnimate, onExpand, onToggle, onClose, children }) => {
     const onPressAnimate = () => {
-        setBG(bg === BG_BLACK ? BG_LIGHT : BG_BLACK);
+        onToggle(tile.id);
     };
 
     const onPressInAnimate = () => {
-        Animated.timing(whAnim, {
-            toValue: TILE_M_SIZE,
-            duration: TILE_ANIMATION_TIME,
-        }).start();
+        onAnimate(tile.id, ANIMATION.to_m);
     };
 
     const onPressOutAnimate = () => {
-        if (!shouldClose) return;
+        if (!tile.shouldClose) return;
 
-        Animated.timing(whAnim, {
-            toValue: TILE_S_SIZE,
-            duration: TILE_ANIMATION_TIME,
-        }).start();
+        onAnimate(tile.id, ANIMATION.to_s);
     };
 
     const onLongPressAnimate = () => {
-        setShouldClose(false);
-        setBG(BG_BLACK); // возвращать цвет плитки в темный
-        props.onExpand(props.tile.id);
+        onExpand(tile.id);
 
-        Animated.timing(whAnim, {
-            toValue: TILE_L_SIZE,
-            duration: TILE_ANIMATION_TIME,
-        }).start();
+        onAnimate(tile.id, ANIMATION.to_l);
     };
 
-    const newWH = { width: whAnim, height: whAnim };
-    const newBG = { backgroundColor: bg };
+    const newWH = { width: tile.whAnim, height: tile.whAnim };
+    const newBG = { backgroundColor: tile.bg };
 
     return (
         <TouchableWithoutFeedback
@@ -70,42 +81,102 @@ const Tile = (props) => {
             onLongPress={onLongPressAnimate}
             delayPressIn={10}
             delayLongPress={300}
-            disabled={!shouldClose}
+            disabled={!tile.shouldClose}
         >
             <View style={styles.tileContainer}>
                 <Animated.View style={[styles.tile, newWH, newBG]}>
-                    {props.children}
-                    <TouchableOpacity onPress={() => { setShouldClose(true); onPressOutAnimate(); }}><Text style={{color:'white'}}>close (x)</Text></TouchableOpacity>
+                    {children}
+                    <TouchableOpacity onPress={() => { onClose(tile.id); }}>
+                        <Text style={{color:'white'}}>(close)</Text>
+                    </TouchableOpacity>
                 </Animated.View>
             </View>
         </TouchableWithoutFeedback>
     )
 }
 
-const AnimatedApp = () => {
-    const [expandedTileID, setExpandedTileID] = useState(undefined);
+const TilesView = ({ tiles, onAnimateTile, onExpandTile, onToggleTile, onCloseTile }) => {
+    return (
+        <View>
+            {tiles.map(t =>
+                <Tile 
+                    key={t.id} 
+                    tile={t} 
+                    onAnimate={onAnimateTile} 
+                    onExpand={onExpandTile}
+                    onToggle={onToggleTile}
+                    onClose={onCloseTile}
+                >
+                    <Text style={styles.text}>{t.title}</Text>
+                </Tile>
+            )}
+        </View>
+    );
+}
 
-    const tilesContent = [{
-            id: 'j35g9h34',
-            title: 'X'
-        }, {
-            id: 'g04j5g0j',
-            title: 'Y'
-        }, {
-            id: 'kdt29kf0',
-            title: 'Z'
-        },
-    ];
+const AnimatedApp = () => {
+    const [tiles, setTiles] = useState(tilesContent);
+
+    const onAnimateTile = (tId, type) => {
+        const tIndex = tiles.findIndex(t => t.id === tId);
+
+        Animated.timing(tiles[tIndex].whAnim, {
+            toValue: type,
+            duration: TILE_ANIMATION_TIME,
+        }).start();
+    }
+
+    const onExpandTile = (tId) => {
+        const tIndex = tiles.findIndex(t => t.id === tId);
+
+        setTiles([
+            ...tiles.slice(0, tIndex),
+            { 
+                ...tiles[tIndex], 
+                shouldClose: false,  
+                bg: BG_BLACK,
+            },
+            ...tiles.slice(tIndex + 1)
+        ]);
+    }
+
+    const onToggleTile = (tId) => {
+        const tIndex = tiles.findIndex(t => t.id === tId);
+
+        setTiles([
+            ...tiles.slice(0, tIndex),
+            { 
+                ...tiles[tIndex], 
+                bg: tiles[tIndex].bg === BG_BLACK ? BG_LIGHT : BG_BLACK,
+            },
+            ...tiles.slice(tIndex + 1)
+        ]);
+    }
+
+    const onCloseTile = (tId) => {
+        const tIndex = tiles.findIndex(t => t.id === tId);
+
+        setTiles([
+            ...tiles.slice(0, tIndex),
+            { 
+                ...tiles[tIndex], 
+                shouldClose: true,
+            },
+            ...tiles.slice(tIndex + 1)
+        ]);
+
+        onAnimateTile(tId, ANIMATION.to_s);
+    }
 
     return (
         <SafeAreaView style={styles.body}>
-            {tilesContent.map(t =>
-                <View key={t.id} style={expandedTileID && t.id !== expandedTileID ? {opacity:0.7} : {opacity:0.7}}>
-                    <Tile tile={t} onExpand={setExpandedTileID}>
-                        <Text style={styles.text}>{t.title}</Text>
-                    </Tile>
-                </View>
-            )}
+            <TilesView
+                tiles={tiles}
+                onAnimateTile={onAnimateTile}
+                onExpandTile={onExpandTile}
+                onToggleTile={onToggleTile}
+                onCloseTile={onCloseTile}
+            />
         </SafeAreaView>
     )
 }
@@ -126,8 +197,10 @@ const styles = StyleSheet.create({
     },
 
     tileContainer: {
-        width: 116,
-        height: 116,
+        width: TILE_S_SIZE + 16,
+        height: TILE_S_SIZE + 16,
+        //backgroundColor: 'cyan',
+        //flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
     },
