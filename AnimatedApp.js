@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import {
     SafeAreaView,
-    Easing,
     Dimensions,
     StyleSheet,
     Text,
@@ -18,7 +17,7 @@ const SCREEN_WIDTH = Dimensions.get('screen').width;
 
 const TILE_ANIMATION_TIME = 300;
 
-const TILE_S_SIZE = 150;
+const TILE_S_SIZE = 120;
 const TILE_M_SIZE = TILE_S_SIZE + 24;
 const TILE_L_SIZE = SCREEN_WIDTH - 16 * 3;
 
@@ -117,6 +116,15 @@ const TilesView = ({ tiles, onAnimateTile, onExpandTile, onToggleTile, onCloseTi
 const AnimatedApp = () => {
     const [tiles, setTiles] = useState(tilesContent);
 
+    const updatedTiles = (tIndex, withData) => [
+        ...tiles.slice(0, tIndex),
+        {
+            ...tiles[tIndex], 
+            ...withData,
+        },
+        ...tiles.slice(tIndex + 1)
+    ];
+
     const onAnimateTile = (tId, type) => {
         const tIndex = tiles.findIndex(t => t.id === tId);
 
@@ -129,41 +137,26 @@ const AnimatedApp = () => {
     const onExpandTile = (tId) => {
         const tIndex = tiles.findIndex(t => t.id === tId);
 
-        setTiles([
-            ...tiles.slice(0, tIndex),
-            { 
-                ...tiles[tIndex], 
-                shouldClose: false,  
-                bg: BG_BLACK,
-            },
-            ...tiles.slice(tIndex + 1)
-        ]);
+        setTiles(updatedTiles(tIndex, {
+            shouldClose: false,
+            bg: BG_BLACK,
+        }));
     }
 
     const onToggleTile = (tId) => {
         const tIndex = tiles.findIndex(t => t.id === tId);
 
-        setTiles([
-            ...tiles.slice(0, tIndex),
-            { 
-                ...tiles[tIndex], 
-                bg: tiles[tIndex].bg === BG_BLACK ? BG_LIGHT : BG_BLACK,
-            },
-            ...tiles.slice(tIndex + 1)
-        ]);
+        setTiles(updatedTiles(tIndex, {
+            bg: tiles[tIndex].bg === BG_BLACK ? BG_LIGHT : BG_BLACK,
+        }));
     }
 
     const onCloseTile = (tId) => {
         const tIndex = tiles.findIndex(t => t.id === tId);
 
-        setTiles([
-            ...tiles.slice(0, tIndex),
-            { 
-                ...tiles[tIndex], 
-                shouldClose: true,
-            },
-            ...tiles.slice(tIndex + 1)
-        ]);
+        setTiles(updatedTiles(tIndex, {
+            shouldClose: true,
+        }));
 
         onAnimateTile(tId, ANIMATION.to_s);
     }
