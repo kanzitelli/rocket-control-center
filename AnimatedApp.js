@@ -13,7 +13,8 @@ import {
 const BG_BLACK = 'black';
 const BG_LIGHT = 'grey';
 
-const SCREEN_WIDTH = Dimensions.get('screen').width;
+const SCREEN_WIDTH  = Dimensions.get('screen').width;
+const SCREEN_HEIGHT = Dimensions.get('screen').height;
 
 const TILE_ANIMATION_TIME = 300;
 
@@ -27,27 +28,56 @@ const ANIMATION = {
     to_l: TILE_L_SIZE,
 }
 
-const tilesContent = [{
+const tilesContent = [
+    {
         id: 'j35g9h34',
         title: 'X',
         whAnim: new Animated.Value(TILE_S_SIZE),
-        shouldClose: true,
+        transformAnim: new Animated.Value(0),
+        expanded: false,
         bg: BG_BLACK,
-        point: undefined,
+        point: {x:0,y:0},
     }, {
         id: 'g04j5g0j',
         title: 'Y',
         whAnim: new Animated.Value(TILE_S_SIZE),
-        shouldClose: true,
+        transformAnim: new Animated.Value(0),
+        expanded: false,
         bg: BG_BLACK,
-        point: undefined,
+        point: {x:0,y:0},
     }, {
         id: 'kdt29kf0',
         title: 'Z',
         whAnim: new Animated.Value(TILE_S_SIZE),
-        shouldClose: true,
+        transformAnim: new Animated.Value(0),
+        expanded: false,
         bg: BG_BLACK,
-        point: undefined,
+        point: {x:0,y:0},
+    },
+    {
+        id: 'j35g9h34-a',
+        title: 'A',
+        whAnim: new Animated.Value(TILE_S_SIZE),
+        transformAnim: new Animated.Value(0),
+        expanded: false,
+        bg: BG_BLACK,
+        point: {x:0,y:0},
+    }, {
+        id: 'g04j5g0j-b',
+        title: 'B',
+        whAnim: new Animated.Value(TILE_S_SIZE),
+        transformAnim: new Animated.Value(0),
+        expanded: false,
+        bg: BG_BLACK,
+        point: {x:0,y:0},
+    }, {
+        id: 'kdt29kf0-c',
+        title: 'C',
+        whAnim: new Animated.Value(TILE_S_SIZE),
+        transformAnim: new Animated.Value(0),
+        expanded: false,
+        bg: BG_BLACK,
+        point: {x:0,y:0},
     },
 ];
 
@@ -57,23 +87,32 @@ const Tile = ({ tile, onAnimate, onExpand, onToggle, onClose, onLayout, children
     };
 
     const onPressInAnimate = () => {
-        onAnimate(tile.id, ANIMATION.to_m);
+        onAnimate(tile.id, ANIMATION.to_m).start();
     };
 
     const onPressOutAnimate = () => {
-        if (!tile.shouldClose) return;
+        if (tile.expanded) return;
 
-        onAnimate(tile.id, ANIMATION.to_s);
+        onAnimate(tile.id, ANIMATION.to_s).start();
     };
 
     const onLongPressAnimate = () => {
-        onExpand(tile.id);
-
-        onAnimate(tile.id, ANIMATION.to_l);
+        onExpand(tile.id); // onAnimate inside of onExpand
     };
 
     const newWH = { width: tile.whAnim, height: tile.whAnim };
     const newBG = { backgroundColor: tile.bg };
+    const transform = [{
+        translateY: tile.transformAnim.interpolate({
+            inputRange: [0, 1],
+            outputRange: [0, SCREEN_HEIGHT/2 - tile.point.y - TILE_S_SIZE / 2 - 12],
+        })
+    }, {
+        translateX: tile.transformAnim.interpolate({
+            inputRange: [0, 1],
+            outputRange: [0, SCREEN_WIDTH/2 - tile.point.x - TILE_S_SIZE / 2 - 8],
+        })
+    }];
 
     return (
         <TouchableWithoutFeedback
@@ -84,10 +123,10 @@ const Tile = ({ tile, onAnimate, onExpand, onToggle, onClose, onLayout, children
             onLongPress={onLongPressAnimate}
             delayPressIn={10}
             delayLongPress={300}
-            disabled={!tile.shouldClose}
+            disabled={tile.expanded}
         >
             <View style={styles.tileContainer}>
-                <Animated.View style={[styles.tile, newWH, newBG]}>
+                <Animated.View style={[styles.tile, newWH, newBG, { transform }]}>
                     {children}
                     {tile.point && <Text style={{color:'white'}}>{`${tile.point.x} ${tile.point.y}`}</Text>}
                     <TouchableOpacity onPress={() => { onClose(tile.id); }}>
@@ -136,19 +175,28 @@ const AnimatedApp = () => {
     const onAnimateTile = (tId, type) => {
         const tIndex = tiles.findIndex(t => t.id === tId);
 
-        Animated.timing(tiles[tIndex].whAnim, {
+        return Animated.timing(tiles[tIndex].whAnim, {
             toValue: type,
             duration: TILE_ANIMATION_TIME,
-        }).start();
+        });
     }
 
     const onExpandTile = (tId) => {
         const tIndex = tiles.findIndex(t => t.id === tId);
+        const tile   = tiles[tIndex];
 
         setTiles(updatedTiles(tIndex, {
-            shouldClose: false,
+            expanded: true,
             bg: BG_BLACK,
         }));
+
+        Animated.parallel([
+            onAnimateTile(tId, ANIMATION.to_l),
+            Animated.timing(tiles[tIndex].transformAnim, {
+                toValue: 1,
+                duration: TILE_ANIMATION_TIME,
+            })
+        ]).start();
     }
 
     const onToggleTile = (tId) => {
@@ -163,23 +211,27 @@ const AnimatedApp = () => {
         const tIndex = tiles.findIndex(t => t.id === tId);
 
         setTiles(updatedTiles(tIndex, {
-            shouldClose: true,
+            expanded: false,
         }));
 
-        onAnimateTile(tId, ANIMATION.to_s);
+        Animated.parallel([
+            onAnimateTile(tId, ANIMATION.to_s),
+            Animated.timing(tiles[tIndex].transformAnim, {
+                toValue: 0,
+                duration: TILE_ANIMATION_TIME,
+            })
+        ]).start();
     }
 
     const onLayoutTile = (tId, layout) => {
         const tIndex = tiles.findIndex(t => t.id === tId);
 
-        if (!tiles[tIndex].point) {
-            setTiles(updatedTiles(tIndex, {
-                point: {
-                    x: layout.x,
-                    y: layout.y,
-                },
-            }));
-        }
+        setTiles(updatedTiles(tIndex, {
+            point: {
+                x: layout.x,
+                y: layout.y,
+            },
+        }));
     }
 
     return (
@@ -200,8 +252,10 @@ const styles = StyleSheet.create({
     body: {
         flex: 1,
         backgroundColor: 'white',
-        justifyContent: 'center',
-        alignItems: 'center',
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+        // justifyContent: 'center',
+        // alignItems: 'center',
     },
     text: {
         color: 'white', 
