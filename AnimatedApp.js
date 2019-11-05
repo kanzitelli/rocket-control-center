@@ -16,7 +16,8 @@ const BG_LIGHT = 'grey';
 const SCREEN_WIDTH  = Dimensions.get('screen').width;
 const SCREEN_HEIGHT = Dimensions.get('screen').height;
 
-const TILE_ANIMATION_TIME = 300;
+const TILE_OPACITY = 0.7;
+const TILE_ANIMATION_TIME = 250;
 
 const TILE_S_SIZE = 120;
 const TILE_M_SIZE = TILE_S_SIZE + 24;
@@ -34,54 +35,54 @@ const tilesContent = [
         title: 'X',
         whAnim: new Animated.Value(TILE_S_SIZE),
         transformAnim: new Animated.Value(0),
-        expanded: false,
         bg: BG_BLACK,
         point: {x:0,y:0},
+        opacity: TILE_OPACITY,
     }, {
         id: 'g04j5g0j',
         title: 'Y',
         whAnim: new Animated.Value(TILE_S_SIZE),
         transformAnim: new Animated.Value(0),
-        expanded: false,
         bg: BG_BLACK,
         point: {x:0,y:0},
+        opacity: TILE_OPACITY,
     }, {
         id: 'kdt29kf0',
         title: 'Z',
         whAnim: new Animated.Value(TILE_S_SIZE),
         transformAnim: new Animated.Value(0),
-        expanded: false,
         bg: BG_BLACK,
         point: {x:0,y:0},
+        opacity: TILE_OPACITY,
     },
     {
         id: 'j35g9h34-a',
         title: 'A',
         whAnim: new Animated.Value(TILE_S_SIZE),
         transformAnim: new Animated.Value(0),
-        expanded: false,
         bg: BG_BLACK,
         point: {x:0,y:0},
+        opacity: TILE_OPACITY,
     }, {
         id: 'g04j5g0j-b',
         title: 'B',
         whAnim: new Animated.Value(TILE_S_SIZE),
         transformAnim: new Animated.Value(0),
-        expanded: false,
         bg: BG_BLACK,
         point: {x:0,y:0},
+        opacity: TILE_OPACITY,
     }, {
         id: 'kdt29kf0-c',
         title: 'C',
         whAnim: new Animated.Value(TILE_S_SIZE),
         transformAnim: new Animated.Value(0),
-        expanded: false,
         bg: BG_BLACK,
         point: {x:0,y:0},
+        opacity: TILE_OPACITY,
     },
 ];
 
-const Tile = ({ tile, onAnimate, onExpand, onToggle, onClose, onLayout, children }) => {
+const Tile = ({ tile, expandedId, onAnimate, onExpand, onToggle, onClose, onLayout, children }) => {
     const onPressAnimate = () => {
         onToggle(tile.id);
     };
@@ -91,7 +92,7 @@ const Tile = ({ tile, onAnimate, onExpand, onToggle, onClose, onLayout, children
     };
 
     const onPressOutAnimate = () => {
-        if (tile.expanded) return;
+        if (isExpanded(tile)) return;
 
         onAnimate(tile.id, ANIMATION.to_s).start();
     };
@@ -100,8 +101,13 @@ const Tile = ({ tile, onAnimate, onExpand, onToggle, onClose, onLayout, children
         onExpand(tile.id); // onAnimate inside of onExpand
     };
 
+    const isExpanded = t => expandedId && t.id === expandedId;
+    const noExpandedTile = () => typeof expandedId !== "undefined";
+
     const newWH = { width: tile.whAnim, height: tile.whAnim };
     const newBG = { backgroundColor: tile.bg };
+    const newOP = { opacity: tile.opacity };
+    const newZI = { zIndex: isExpanded(tile) ? 101 : 99 };
     const transform = [{
         translateY: tile.transformAnim.interpolate({
             inputRange: [0, 1],
@@ -114,37 +120,46 @@ const Tile = ({ tile, onAnimate, onExpand, onToggle, onClose, onLayout, children
         })
     }];
 
+    // stupid logic --> pointerEvents={noExpandedTile() ? (isExpanded(tile) ? 'auto' : 'none') : 'auto'}
+    // if all tiles are minimized, then 'auto'
+    // if only one is expanded, then allow 'auto' only on it
     return (
-        <TouchableWithoutFeedback
+        <View
+            style={newZI}
             onLayout={e => onLayout(tile.id, e.nativeEvent.layout)}
-            onPress={onPressAnimate}
-            onPressIn={onPressInAnimate}
-            onPressOut={onPressOutAnimate}
-            onLongPress={onLongPressAnimate}
-            delayPressIn={10}
-            delayLongPress={300}
-            disabled={tile.expanded}
+            pointerEvents={noExpandedTile() ? (isExpanded(tile) ? 'auto' : 'none') : 'auto'}
         >
-            <View style={styles.tileContainer}>
-                <Animated.View style={[styles.tile, newWH, newBG, { transform }]}>
-                    {children}
-                    {tile.point && <Text style={{color:'white'}}>{`${tile.point.x} ${tile.point.y}`}</Text>}
-                    <TouchableOpacity onPress={() => { onClose(tile.id); }}>
-                        <Text style={{color:'white'}}>(close)</Text>
-                    </TouchableOpacity>
-                </Animated.View>
-            </View>
-        </TouchableWithoutFeedback>
+            <TouchableWithoutFeedback
+                onPress={onPressAnimate}
+                onPressIn={onPressInAnimate}
+                onPressOut={onPressOutAnimate}
+                onLongPress={onLongPressAnimate}
+                delayPressIn={10}
+                delayLongPress={TILE_ANIMATION_TIME}
+                disabled={isExpanded(tile)}
+            >
+                <View style={styles.tileContainer}>
+                    <Animated.View style={[styles.tile, newWH, newBG, newOP, { transform }]}>
+                        {children}
+                        {tile.point && <Text style={{color:'white'}}>{`${tile.point.x} ${tile.point.y}`}</Text>}
+                        <TouchableOpacity onPress={() => { onClose(tile.id); }}>
+                            <Text style={{color:'white'}}>(close) {expandedId}</Text>
+                        </TouchableOpacity>
+                    </Animated.View>
+                </View>
+            </TouchableWithoutFeedback>
+        </View>
     )
 }
 
-const TilesView = ({ tiles, onAnimateTile, onExpandTile, onToggleTile, onCloseTile, onLayoutTile }) => {
+const TilesView = ({ tiles, expandedTileId, onAnimateTile, onExpandTile, onToggleTile, onCloseTile, onLayoutTile }) => {
     return (
         <React.Fragment>
             {tiles.map(t =>
                 <Tile 
                     key={t.id} 
                     tile={t} 
+                    expandedId={expandedTileId}
                     onAnimate={onAnimateTile} 
                     onExpand={onExpandTile}
                     onToggle={onToggleTile}
@@ -160,10 +175,11 @@ const TilesView = ({ tiles, onAnimateTile, onExpandTile, onToggleTile, onCloseTi
 
 const AnimatedApp = () => {
     const [tiles, setTiles] = useState(tilesContent);
+    const [expandedTileId, setExpandedTileId] = useState(undefined);
 
     // useEffect(() => { console.log(state1, state2)}, [state1])
 
-    const updatedTiles = (tIndex, withData) => [
+    const updateTile = (tIndex, withData) => [
         ...tiles.slice(0, tIndex),
         {
             ...tiles[tIndex], 
@@ -183,12 +199,17 @@ const AnimatedApp = () => {
 
     const onExpandTile = (tId) => {
         const tIndex = tiles.findIndex(t => t.id === tId);
-        const tile   = tiles[tIndex];
-
-        setTiles(updatedTiles(tIndex, {
-            expanded: true,
+        const updatedTiles = updateTile(tIndex, {
             bg: BG_BLACK,
-        }));
+        });
+
+        // обновляем opacity у плиток, которые остались маленькими
+        for (let i = 0; i < updatedTiles.length; i++) {
+            if (i !== tIndex) updatedTiles[i].opacity = 0;
+        }
+
+        setExpandedTileId(tId);
+        setTiles(updatedTiles);
 
         Animated.parallel([
             onAnimateTile(tId, ANIMATION.to_l),
@@ -202,17 +223,22 @@ const AnimatedApp = () => {
     const onToggleTile = (tId) => {
         const tIndex = tiles.findIndex(t => t.id === tId);
 
-        setTiles(updatedTiles(tIndex, {
+        setTiles(updateTile(tIndex, {
             bg: tiles[tIndex].bg === BG_BLACK ? BG_LIGHT : BG_BLACK,
         }));
     }
 
     const onCloseTile = (tId) => {
         const tIndex = tiles.findIndex(t => t.id === tId);
+        const updatedTiles = updateTile(tIndex, {});
 
-        setTiles(updatedTiles(tIndex, {
-            expanded: false,
-        }));
+        // возвращаем opacity у плиток, которые оставались маленькими
+        for (let i = 0; i < updatedTiles.length; i++) {
+            if (i !== tIndex) updatedTiles[i].opacity = TILE_OPACITY;
+        }
+
+        setExpandedTileId(undefined);
+        setTiles(updatedTiles);
 
         Animated.parallel([
             onAnimateTile(tId, ANIMATION.to_s),
@@ -226,7 +252,7 @@ const AnimatedApp = () => {
     const onLayoutTile = (tId, layout) => {
         const tIndex = tiles.findIndex(t => t.id === tId);
 
-        setTiles(updatedTiles(tIndex, {
+        setTiles(updateTile(tIndex, {
             point: {
                 x: layout.x,
                 y: layout.y,
@@ -238,6 +264,7 @@ const AnimatedApp = () => {
         <SafeAreaView style={styles.body}>
             <TilesView
                 tiles={tiles}
+                expandedTileId={expandedTileId}
                 onAnimateTile={onAnimateTile}
                 onExpandTile={onExpandTile}
                 onToggleTile={onToggleTile}
@@ -254,7 +281,7 @@ const styles = StyleSheet.create({
         backgroundColor: 'white',
         flexDirection: 'row',
         flexWrap: 'wrap',
-        // justifyContent: 'center',
+        justifyContent: 'center',
         // alignItems: 'center',
     },
     text: {
@@ -274,7 +301,7 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center',
         backgroundColor: 'black',
-        opacity: 0.7,
+        opacity: TILE_OPACITY,
         borderRadius: 20,
     }
 });
