@@ -7,8 +7,8 @@ import {
     View,
     Animated,
     TouchableWithoutFeedback,
-    TouchableOpacity
 } from 'react-native';
+import { TouchableOpacity } from 'react-native-gesture-handler';
 
 const BG_BLACK = 'black';
 const BG_LIGHT = 'grey';
@@ -19,7 +19,7 @@ const SCREEN_HEIGHT = Dimensions.get('screen').height;
 const TILE_OPACITY = 0.7;
 const TILE_ANIMATION_TIME = 250;
 
-const TILE_S_SIZE = 120;
+const TILE_S_SIZE = 100;
 const TILE_M_SIZE = TILE_S_SIZE + 24;
 const TILE_L_SIZE = SCREEN_WIDTH - 16 * 3;
 
@@ -79,6 +79,22 @@ const tilesContent = [
         bg: BG_BLACK,
         point: {x:0,y:0},
         opacity: TILE_OPACITY,
+    }, {
+        id: 'g04j5g0j-1',
+        title: '1',
+        whAnim: new Animated.Value(TILE_S_SIZE),
+        transformAnim: new Animated.Value(0),
+        bg: BG_BLACK,
+        point: {x:0,y:0},
+        opacity: TILE_OPACITY,
+    }, {
+        id: 'kdt29kf0-2',
+        title: '2',
+        whAnim: new Animated.Value(TILE_S_SIZE),
+        transformAnim: new Animated.Value(0),
+        bg: BG_BLACK,
+        point: {x:0,y:0},
+        opacity: TILE_OPACITY,
     },
 ];
 
@@ -108,6 +124,7 @@ const Tile = ({ tile, expandedId, onAnimate, onExpand, onToggle, onClose, onLayo
     const newBG = { backgroundColor: tile.bg };
     const newOP = { opacity: tile.opacity };
     const newZI = { zIndex: isExpanded(tile) ? 101 : 99 };
+    //const newZI = {}
     const transform = [{
         translateY: tile.transformAnim.interpolate({
             inputRange: [0, 1],
@@ -141,7 +158,7 @@ const Tile = ({ tile, expandedId, onAnimate, onExpand, onToggle, onClose, onLayo
                 <View style={styles.tileContainer}>
                     <Animated.View style={[styles.tile, newWH, newBG, newOP, { transform }]}>
                         {children}
-                        {tile.point && <Text style={{color:'white'}}>{`${tile.point.x} ${tile.point.y}`}</Text>}
+                        {!tile.point && <Text style={{color:'white'}}>{`${tile.point.x} ${tile.point.y}`}</Text>}
                         <TouchableOpacity onPress={() => { onClose(tile.id); }}>
                             <Text style={{color:'white'}}>(close) {expandedId}</Text>
                         </TouchableOpacity>
@@ -282,11 +299,12 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         flexWrap: 'wrap',
         justifyContent: 'center',
+        alignContent: 'center',
         // alignItems: 'center',
     },
     text: {
         color: 'white', 
-        fontSize: 48,
+        fontSize: 30,
     },
 
     tileContainer: {
