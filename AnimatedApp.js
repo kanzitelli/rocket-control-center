@@ -151,7 +151,8 @@ const AnimatedApp = () => {
         const tIndex = tiles.findIndex(t => t.id === tId);
 
         setTiles(updateTile(tIndex, {
-            bg: tiles[tIndex].bg === BG_BLACK ? BG_LIGHT : BG_BLACK,
+            bg: !tiles[tIndex].activated ? BG_LIGHT : BG_BLACK,
+            activated: !tiles[tIndex].activated,
         }));
     }
 
@@ -159,7 +160,9 @@ const AnimatedApp = () => {
         if (!tId) return;
 
         const tIndex = tiles.findIndex(t => t.id === tId);
-        const updatedTiles = updateTile(tIndex, {});
+        const updatedTiles = updateTile(tIndex, {
+            bg: tiles[tIndex].activated ? BG_LIGHT : BG_BLACK,
+        });
 
         // возвращаем opacity у плиток, которые оставались маленькими
         for (let i = 0; i < updatedTiles.length; i++) {
