@@ -6,7 +6,7 @@ import {
     Text,
     View,
     Animated,
-    TouchableWithoutFeedback,
+    TouchableWithoutFeedback
 } from 'react-native';
 import { TouchableOpacity } from 'react-native-gesture-handler';
 
@@ -160,7 +160,7 @@ const Tile = ({ tile, expandedId, onAnimate, onExpand, onToggle, onClose, onLayo
                         {children}
                         {!tile.point && <Text style={{color:'white'}}>{`${tile.point.x} ${tile.point.y}`}</Text>}
                         <TouchableOpacity onPress={() => { onClose(tile.id); }}>
-                            <Text style={{color:'white'}}>(close) {expandedId}</Text>
+                            <Text style={{color:'white'}}>(close)</Text>
                         </TouchableOpacity>
                     </Animated.View>
                 </View>
@@ -246,6 +246,8 @@ const AnimatedApp = () => {
     }
 
     const onCloseTile = (tId) => {
+        if (!tId) return;
+
         const tIndex = tiles.findIndex(t => t.id === tId);
         const updatedTiles = updateTile(tIndex, {});
 
@@ -295,7 +297,6 @@ const AnimatedApp = () => {
 const styles = StyleSheet.create({
     body: {
         flex: 1,
-        backgroundColor: 'white',
         flexDirection: 'row',
         flexWrap: 'wrap',
         justifyContent: 'center',
@@ -314,8 +315,8 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
     tile: {
-        width: 100,
-        height: 100,
+        width: TILE_S_SIZE,
+        height: TILE_S_SIZE,
         justifyContent: 'center',
         alignItems: 'center',
         backgroundColor: 'black',
