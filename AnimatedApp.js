@@ -10,94 +10,6 @@ import {
 } from 'react-native';
 import { TouchableOpacity } from 'react-native-gesture-handler';
 
-const BG_BLACK = 'black';
-const BG_LIGHT = 'grey';
-
-const SCREEN_WIDTH  = Dimensions.get('screen').width;
-const SCREEN_HEIGHT = Dimensions.get('screen').height;
-
-const TILE_OPACITY = 0.7;
-const TILE_ANIMATION_TIME = 250;
-
-const TILE_S_SIZE = 100;
-const TILE_M_SIZE = TILE_S_SIZE + 24;
-const TILE_L_SIZE = SCREEN_WIDTH - 16 * 3;
-
-const ANIMATION = {
-    to_s: TILE_S_SIZE,
-    to_m: TILE_M_SIZE,
-    to_l: TILE_L_SIZE,
-}
-
-const tilesContent = [
-    {
-        id: 'j35g9h34',
-        title: 'X',
-        whAnim: new Animated.Value(TILE_S_SIZE),
-        transformAnim: new Animated.Value(0),
-        bg: BG_BLACK,
-        point: {x:0,y:0},
-        opacity: TILE_OPACITY,
-    }, {
-        id: 'g04j5g0j',
-        title: 'Y',
-        whAnim: new Animated.Value(TILE_S_SIZE),
-        transformAnim: new Animated.Value(0),
-        bg: BG_BLACK,
-        point: {x:0,y:0},
-        opacity: TILE_OPACITY,
-    }, {
-        id: 'kdt29kf0',
-        title: 'Z',
-        whAnim: new Animated.Value(TILE_S_SIZE),
-        transformAnim: new Animated.Value(0),
-        bg: BG_BLACK,
-        point: {x:0,y:0},
-        opacity: TILE_OPACITY,
-    },
-    {
-        id: 'j35g9h34-a',
-        title: 'A',
-        whAnim: new Animated.Value(TILE_S_SIZE),
-        transformAnim: new Animated.Value(0),
-        bg: BG_BLACK,
-        point: {x:0,y:0},
-        opacity: TILE_OPACITY,
-    }, {
-        id: 'g04j5g0j-b',
-        title: 'B',
-        whAnim: new Animated.Value(TILE_S_SIZE),
-        transformAnim: new Animated.Value(0),
-        bg: BG_BLACK,
-        point: {x:0,y:0},
-        opacity: TILE_OPACITY,
-    }, {
-        id: 'kdt29kf0-c',
-        title: 'C',
-        whAnim: new Animated.Value(TILE_S_SIZE),
-        transformAnim: new Animated.Value(0),
-        bg: BG_BLACK,
-        point: {x:0,y:0},
-        opacity: TILE_OPACITY,
-    }, {
-        id: 'g04j5g0j-1',
-        title: '1',
-        whAnim: new Animated.Value(TILE_S_SIZE),
-        transformAnim: new Animated.Value(0),
-        bg: BG_BLACK,
-        point: {x:0,y:0},
-        opacity: TILE_OPACITY,
-    }, {
-        id: 'kdt29kf0-2',
-        title: '2',
-        whAnim: new Animated.Value(TILE_S_SIZE),
-        transformAnim: new Animated.Value(0),
-        bg: BG_BLACK,
-        point: {x:0,y:0},
-        opacity: TILE_OPACITY,
-    },
-];
-
 const Tile = ({ tile, expandedId, onAnimate, onExpand, onToggle, onClose, onLayout, children }) => {
     const onPressAnimate = () => {
         onToggle(tile.id);
@@ -124,7 +36,6 @@ const Tile = ({ tile, expandedId, onAnimate, onExpand, onToggle, onClose, onLayo
     const newBG = { backgroundColor: tile.bg };
     const newOP = { opacity: tile.opacity };
     const newZI = { zIndex: isExpanded(tile) ? 101 : 99 };
-    //const newZI = {}
     const transform = [{
         translateY: tile.transformAnim.interpolate({
             inputRange: [0, 1],
@@ -158,7 +69,6 @@ const Tile = ({ tile, expandedId, onAnimate, onExpand, onToggle, onClose, onLayo
                 <View style={styles.tileContainer}>
                     <Animated.View style={[styles.tile, newWH, newBG, newOP, { transform }]}>
                         {children}
-                        {!tile.point && <Text style={{color:'white'}}>{`${tile.point.x} ${tile.point.y}`}</Text>}
                         <TouchableOpacity onPress={() => { onClose(tile.id); }}>
                             <Text style={{color:'white'}}>(close)</Text>
                         </TouchableOpacity>
@@ -294,6 +204,38 @@ const AnimatedApp = () => {
     )
 }
 
+export default AnimatedApp;
+
+
+
+
+
+// =================
+// CONSTANTS
+// =================
+const BG_BLACK = 'black';
+const BG_LIGHT = 'grey';
+
+const SCREEN_WIDTH  = Dimensions.get('screen').width;
+const SCREEN_HEIGHT = Dimensions.get('screen').height;
+
+const TILE_OPACITY = 0.7;
+const TILE_ANIMATION_TIME = 250;
+
+const TILE_S_SIZE = 100;
+const TILE_M_SIZE = TILE_S_SIZE + 24;
+const TILE_L_SIZE = SCREEN_WIDTH - 16 * 3;
+
+const ANIMATION = {
+    to_s: TILE_S_SIZE,
+    to_m: TILE_M_SIZE,
+    to_l: TILE_L_SIZE,
+};
+
+
+// =================
+// STYLES
+// =================
 const styles = StyleSheet.create({
     body: {
         flex: 1,
@@ -325,4 +267,83 @@ const styles = StyleSheet.create({
     }
 });
 
-export default AnimatedApp;
+
+// =================
+// DATA
+// =================
+const tilesContent = [
+    {
+        id: 'j35g9h34',
+        title: 'X',
+        whAnim: new Animated.Value(TILE_S_SIZE),
+        transformAnim: new Animated.Value(0),
+        bg: BG_BLACK,
+        point: {x:0,y:0},
+        opacity: TILE_OPACITY,
+        activated: false,
+    }, {
+        id: 'g04j5g0j',
+        title: 'Y',
+        whAnim: new Animated.Value(TILE_S_SIZE),
+        transformAnim: new Animated.Value(0),
+        bg: BG_BLACK,
+        point: {x:0,y:0},
+        opacity: TILE_OPACITY,
+        activated: false,
+    }, {
+        id: 'kdt29kf0',
+        title: 'Z',
+        whAnim: new Animated.Value(TILE_S_SIZE),
+        transformAnim: new Animated.Value(0),
+        bg: BG_BLACK,
+        point: {x:0,y:0},
+        opacity: TILE_OPACITY,
+        activated: false,
+    },
+    {
+        id: 'j35g9h34-a',
+        title: 'A',
+        whAnim: new Animated.Value(TILE_S_SIZE),
+        transformAnim: new Animated.Value(0),
+        bg: BG_BLACK,
+        point: {x:0,y:0},
+        opacity: TILE_OPACITY,
+        activated: false,
+    }, {
+        id: 'g04j5g0j-b',
+        title: 'B',
+        whAnim: new Animated.Value(TILE_S_SIZE),
+        transformAnim: new Animated.Value(0),
+        bg: BG_BLACK,
+        point: {x:0,y:0},
+        opacity: TILE_OPACITY,
+        activated: false,
+    }, {
+        id: 'kdt29kf0-c',
+        title: 'C',
+        whAnim: new Animated.Value(TILE_S_SIZE),
+        transformAnim: new Animated.Value(0),
+        bg: BG_BLACK,
+        point: {x:0,y:0},
+        opacity: TILE_OPACITY,
+        activated: false,
+    }, {
+        id: 'g04j5g0j-1',
+        title: '1',
+        whAnim: new Animated.Value(TILE_S_SIZE),
+        transformAnim: new Animated.Value(0),
+        bg: BG_BLACK,
+        point: {x:0,y:0},
+        opacity: TILE_OPACITY,
+        activated: false,
+    }, {
+        id: 'kdt29kf0-2',
+        title: '2',
+        whAnim: new Animated.Value(TILE_S_SIZE),
+        transformAnim: new Animated.Value(0),
+        bg: BG_BLACK,
+        point: {x:0,y:0},
+        opacity: TILE_OPACITY,
+        activated: false,
+    },
+];
